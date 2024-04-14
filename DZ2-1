@@ -1,0 +1,153 @@
+
+use16
+org 100h
+
+init:
+  call set_mode
+  
+  mov ax, 0x3515
+  int 21h
+  mov [orig_0x15],bx
+  mov [orig_0x15 +2],es
+  
+  mov ax,0x2515
+  mov dx, own_int0x15
+  
+  mov ax,0x2582
+  mov dx,[orig_0x15]
+  push ds
+  mov bx,es
+  mov dx,bx
+  int 21h
+  pop ds
+  mov ax,0x4c00
+  int 0x21
+  ;--------------------------------------------------
+
+  
+  
+;----------------------------------------------------------
+;own int
+own_int0x15:
+  pusha
+  pushf
+  sti
+  
+  m1:
+    in al,0x60
+    
+    cmp al, 0x39
+    je exit
+    
+   
+    jmp m1
+
+  int_fin:
+    popf
+    popa
+    int 0x82
+    ;call ret_int0x15
+    ;popf
+    ;popa
+    
+    
+    iret
+
+ret_int0x15:
+  mov ax,0x2515
+  mov dx, orig_0x15
+  int 21h
+  ret
+
+exit:
+  popf
+  popa
+  mov ax, 0
+  
+  int 20h
+  ret
+  
+  
+;----------------------------------------------------------
+;set mode
+
+set_mode:
+  pusha
+  mov al, 0xb6
+  out 0x43, al          ; Задаем режим работы контроллера
+  popa
+  ret
+
+turn_on:
+  pusha
+  in al, 0x61
+  or al, 00000011b      ; Установим 2 младших бита
+  out 0x61, al          ; Включим динамик
+  popa
+  ret
+  
+turn_off:
+  pusha
+  in al, 0x61           ; Сбрасываем 2 младших бита
+  and al, 11111100b
+  out 0x61, al          ; Выключим динамик
+  popa
+  ret
+;----------------------------------------------------------
+;sound
+
+beep0:
+  call play_1
+  call turn_on
+  call Delay
+  call turn_off
+  jmp int_fin
+  
+
+
+  
+
+
+;-----------------------------------------------------
+
+play_1:
+  pusha
+  mov ax, (1190000/300) 
+  out 0x42, al          
+  mov al, ah            
+  out 0x42, al          
+  popa
+  ret
+
+
+;----------------------------------------------------------
+
+Delay:
+  pusha
+  mov ah,0
+  int 0x1a
+  mov si,2
+  jmp sleep
+  
+  sleep:
+    push dx
+    mov ah,0
+    int 0x1a
+    pop bx
+    cmp bx,dx
+    jne cnt
+    jmp sleep
+  
+  fin:
+    popa
+    ret
+
+cnt:
+  dec si
+  cmp si,0
+  je fin
+  jmp sleep
+
+
+;----------------------------------------------------------
+orig_0x15: dw 0,0
