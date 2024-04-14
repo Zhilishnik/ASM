@@ -1,0 +1,252 @@
+use16 
+org 100h
+
+call main2
+
+main2:
+pusha
+    call start
+    mov esi, melody
+    mov ecx,size_melody 
+    mov dx,42h
+        a15: push edx
+             pop edx
+             call beep_1
+             call Delay_1
+            outsb 
+    loop a15
+call end1
+
+start:
+pusha
+mov al, 0B6h
+out 43h,al
+
+in al,61h
+or al,00000011b
+out 61h,al
+popa
+
+ret
+
+end1:
+pusha
+	in al, 0x61           ; Сбрасываем 2 младших бита
+	and al, 11111100b
+	out 0x61, al          ; Выключим динамик
+	popa
+	ret
+
+
+    exit:
+    mov ax,0
+    int 16h
+    int 20h
+
+timer2:
+    pusha
+    mov AH,0x0	; функция 00h прерывания 0x1A
+    int 0x1A    ; возвращает текущее время
+    add DX,1   	; требуемая задержка
+    mov BX,DX
+    
+	wait_again:
+	mov AH,0x0
+    int 0x1A
+    cmp DX,BX	; cравниваю текущее время с необходимым 
+    jl wait_again
+
+    popa
+    ret 
+
+timer:
+   pusha
+   mov ah,0
+   int 1Ah
+    
+		
+	waitd:
+    push dx
+	mov AH,0x0
+    int 0x1A
+    cmp DX,BX	; cравниваю текущее время с необходимым 
+    je waitd
+    popa
+    ret 
+
+    play1:
+    pusha
+    mov ax, (1190000/440)
+    out 0x42, al
+    mov al, ah
+    out 0x42, al
+    popa
+    ret
+
+    play2:
+    pusha
+    mov ax, (10C5h)
+    out 0x42, al
+    mov al, ah
+    out 0x42, al
+    popa
+    ret
+
+    play3:
+    pusha
+    mov ax, (0FD4h)
+    out 0x42, al
+    mov al, ah
+    out 0x42, al
+    popa
+    ret
+
+    play4:
+    pusha
+    mov ax, (0EF1h)
+    out 0x42, al
+    mov al, ah
+    out 0x42, al
+    popa
+    ret
+
+    play5:
+    pusha
+    mov ax, (0E1Ah)
+    out 0x42, al
+    mov al, ah
+    out 0x42, al
+    popa
+    ret
+
+    play6:
+    pusha
+    mov ax, (0D50h)
+    out 0x42, al
+    mov al, ah
+    out 0x42, al
+    popa
+    ret
+
+    play7:
+    pusha
+    mov ax, (0C90h)
+    out 0x42, al
+    mov al, ah
+    out 0x42, al
+    popa
+    ret
+
+    play8:
+    pusha
+    mov ax, (0BDCh)
+    out 0x42, al
+    mov al, ah
+    out 0x42, al
+    popa
+    ret
+
+    play9:
+    pusha
+    mov ax, (0B31h)
+    out 0x42, al
+    mov al, ah
+    out 0x42, al
+    popa
+    ret
+
+    play10:
+    pusha
+    mov ax, (0A91h)
+    out 0x42, al
+    mov al, ah
+    out 0x42, al
+    popa
+    ret
+
+    pause1:
+    pusha
+    call end1
+    call Delay_1
+    call start
+    popa
+    ret
+main:
+pusha
+    call start
+    call play1
+    call beep_1
+    call pause1
+    call beep_1
+    call pause1
+    call play2
+    call pause1
+    call beep_1
+    call play3
+    call pause1
+    call beep_1
+    call play4
+    call pause1
+    call beep_1
+    call play5
+    call pause1
+    call beep_1
+    call play6
+    call beep_1
+    call play7
+    call beep_1
+    call play8
+    call beep_1
+    call play9
+    call beep_1
+    call play10
+    call pause1
+    call beep_1
+    call end1
+    jmp exit
+popa
+    ret
+
+beep_1:
+	pusha
+	
+
+	call Delay_1
+
+	
+	popa
+	ret
+
+    Delay_1:
+	pusha
+	mov ah,0
+	int 0x1a
+	mov si,4
+	jmp sleep
+
+
+	sleep:
+		push dx
+		mov ah,0
+		int 0x1a
+		pop bx
+		cmp bx,dx
+		jne cnt
+		jmp sleep
+	
+	fin:
+		popa
+		ret
+
+cnt:
+	dec si
+	cmp si,0
+	je fin
+	jmp sleep
+
+
+     
+    
+      
+    melody dw 0A91h, 0B31h, 0BDCh, 0C90h,0E1Ah, 0D50h, 649h, 10C5h, 4FDh, 472h
+     size_melody = $ - melody
